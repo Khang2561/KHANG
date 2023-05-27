@@ -1,80 +1,97 @@
-CREATE TABLE SINHVIEN(
-	CCCD CHAR(12) NOT NULL,
-	HoTen VARCHAR(40),
-	GioiTinh VARCHAR(40),
-	NGSINH DATE,
-	QuocGia VARCHAR(40),
-	Truong VARCHAR(40),
-	SV_NAM INT,
-	DanToc VARCHAR(40),
-	TonGiao VARCHAR(40),
-	CONSTRAINT PK_SINHVIEN PRIMARY KEY(CCCD)
+
+CREATE TABLE HangSX(
+	MaHangSX varchar(10) not null,
+	TenHangSX VARCHAR(20),
+	CONSTRAINT PF_HangSX PRIMARY KEY (MaHangSX)
 );
 
-CREATE TABLE TOA (
-	KHU CHAR(1) NOT NULL,
-	MATOA VARCHAR(10) NOT NULL,
-	SLSinhVien INT,
-	CONSTRAINT FK_TOA PRIMARY KEY (MATOA)
+CREATE TABLE NuocSX(
+	MaNuocSX varchar(10) not null,
+	TenNuocSX VARCHAR(20),
+	CONSTRAINT PF_NuocSX PRIMARY KEY (MaNuocSX)
 );
 
-CREATE TABLE NHANVIEN(
-	CCCD CHAR(12) NOT NULL,
-	HoTen VARCHAR(40),
-	NgSinh DATE,
-	GioiTinh VARCHAR(10),
-	ChucVu VARCHAR(20),
-	Luong bigint,
-	DiaChi VARCHAR(100),
-	CONSTRAINT FK_NHANVIEN PRIMARY KEY (CCCD)
+CREATE TABLE TheLoai(
+	MaTheLoai varchar(10) not null,
+	TenTheLoai varchar(20),
+	CONSTRAINT PF_TheLoai PRIMARY KEY (MaTheLoai)
 );
 
-
-CREATE TABLE PHONG( 
-	MATOA VARCHAR(10) NOT NULL,
-	MAPHONG VARCHAR(10) NOT NULL,
-	LoaiHinh VARCHAR(50),
-	SL int,
-	CONSTRAINT PK_Phong PRIMARY KEY (MATOA,MAPHONG),
-	CONSTRAINT FK_MATOA FOREIGN KEY (MATOA) REFERENCES TOA(MATOA)
+CREATE TABLE Phim(
+	MaPhim VARCHAR(10) NOT NULL,
+	TenPhim VARCHAR(50),
+	MaNuocSX VARCHAR(10) NOT NULL,
+	MaHangSX VARCHAR(10) NOT NULL,
+	DaoDien VARCHAR(20),
+	MaTheLoai VARCHAR(20) NOT NULL,
+	NgayKhoiChieu DATE,
+	NgayKetThuc DATE,
+	NuDVChinh VARCHAR(50),
+	NoiDungChinh text,
+	TongChiPhi bigint,
+	TongThu bigint,
+	CONSTRAINT PK_Phim primary key (MaPhim),
+	CONSTRAINT FK_MaHangSX foreign key (MaHangSX) REFERENCES HangSX(MaHangSX),
+	CONSTRAINT FK_MaNuocSX foreign key (MaNuocSX) REFERENCES NuocSX(MaNuocSX),
+	CONSTRAINT FK_TheLoai foreign key (MaTheLoai) REFERENCES TheLoai(MaTheLoai)
 );
 
-CREATE TABLE SV_TOA_PHONG(
-	CCCD CHAR(12) NOT NULL,
-	HoTen VARCHAR(40),
-	KHU CHAR(1) NOT NULL,
-	MATOA VARCHAR(10) NOT NULL,
-	MAPHONG VARCHAR(10) NOT NULL,
-	CONSTRAINT PK_SV_TOA_PHONG PRIMARY KEY (CCCD,KHU,MATOA,MAPHONG),
-	CONSTRAINT FK_CCCD1 FOREIGN KEY (CCCD) REFERENCES SINHVIEN(CCCD),
-	CONSTRAINT FK_KHU1 FOREIGN KEY (MATOA) REFERENCES TOA(MATOA),
-	CONSTRAINT FK_MAPHONG1 FOREIGN KEY (MATOA,MAPHONG) REFERENCES PHONG(MATOA,MAPHONG)
+CREATE TABLE RAP(
+	MaRap varchar(10) not null,
+	TenRap varchar(50),
+	DiaChi varchar(100),
+	DienThoai varchar(10),
+	SoPhong varchar(10),
+	TongSoGhe int,
+	CONSTRAINT FK_RAP PRIMARY KEY (MaRap)
+);
+CREATE TABLE GioChieu(
+	MaGioChieu varchar(10) not null,
+	MaRap varchar(10),
+	GioChieu time,
+	CONSTRAINT PK_GioChieu PRIMARY KEY(MaGioChieu),
+	CONSTRAINT FK_MaRap FOREIGN KEY(MaRap) references RAP(MaRap)	
 );
 
-CREATE TABLE PHUONGTIEN(
-	CCCD CHAR(12) NOT NULL,
-	PHUONGTIEN VARCHAR(40) NOT NULL,
-	SOXE VARCHAR(40),
-	CONSTRAINT PK_PHUONGTIEN PRIMARY KEY(CCCD,PHUONGTIEN),
-	CONSTRAINT FK_CCCD FOREIGN KEY (CCCD) REFERENCES SINHVIEN(CCCD)
+CREATE TABLE PhongChieu(
+	MaPhong varchar(10) not null primary key,
+	MaRap varchar(10) not null,
+	TenPhong varchar(50),
+	TongSoGhe int,
+	constraint FK_MARAP foreign key (MaRap) references RAP(MaRap)
 );
 
-CREATE TABLE HOADON(
-	MAHD VARCHAR(10) NOT NULL,
-	MATOA VARCHAR(10) NOT NULL,
-	MAPHONG VARCHAR(10) NOT NULL,
-	THANG INT,
-	TONGTIEN BIGINT,
-	CONSTRAINT PK_HOADON PRIMARY KEY (MAHD),
-	CONSTRAINT FK_MAPHONG2 FOREIGN KEY (MATOA,MAPHONG) REFERENCES PHONG(MATOA,MAPHONG)	
+CREATE TABLE Ve(
+	MaGhe varchar(10) not null primary key,
+	MaShow varchar(10) not null
 );
-
-CREATE TABLE CTHD(
-	MAHD VARCHAR(10) NOT NULL,
-	LOAIHD VARCHAR(20) NOT NULL,-- LOAI HOA DON ( TIEN DIEN, TIEN NUOC, TIEN PHONG)
-	TIEN BIGINT,
-	CONSTRAINT PK_CTHD PRIMARY KEY (MAHD,LOAIHD),
-	CONSTRAINT FK_MAHD FOREIGN KEY (MAHD) REFERENCES HOADON(MAHD)
+CREATE TABLE PhongChieuGhe(
+	MaRap varchar(10) not null,
+	MaPhong varchar(10) not null,
+	MaGhe varchar(10) not null primary key,
+	TrangThai varchar(10),
+	constraint fk_MaPhong foreign key(MaPhong) references PhongChieu(MaPhong),
+	constraint fk_MaRap foreign key (MaRap) references RAP(MaRap),
+	constraint fk_MaGhe foreign key (MaGhe) references Ve(MaGhe)
 );
+alter table Ve add constraint fk_MaGhe foreign key (MaGhe) references PhongChieuGhe(MaGhe);
 
-
+CREATE TABLE LichChieu(
+	MaShow varchar(10) not null,
+	MaPhim varchar(10) not null,
+	MaRap varchar(10) not null,
+	MaPhong varchar(10) not null,
+	NgayChieu date,
+	MaGioChieu varchar(10) not null,
+	GiaVe bigint,
+	SoVeDaBan int,
+	TongTien bigint,
+	CONSTRAINT PF_LichChieu primary key (MaShow),
+	CONSTRAINT FK_MaPhim foreign key (MaPhim) REFERENCES Phim(MaPhim),
+	CONSTRAINT FK_MaPhong foreign key (MaPhong) REFERENCES PhongChieu(MaPhong),
+	constraint fk_MaRap foreign key (MaRap) REFERENCES RAP(MaRap),
+	constraint fk_MaGioChieu foreign key (MaGioChieu) REFERENCES GioChieu(MaGioChieu)
+	
+	
+);
+alter table Ve add constraint fk_MaShow foreign key (MaShow) references LichChieu(MaShow);
