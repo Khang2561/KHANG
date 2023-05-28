@@ -29,7 +29,6 @@ CREATE TABLE Phim(
 	MaTheLoai VARCHAR(10) NOT NULL,
 	NgayKhoiChieu DATE,
 	NgayKetThuc DATE,
-	NuDVChinh VARCHAR(50),
 	NoiDungChinh text,
 	TongChiPhi bigint,
 	TongThu bigint,
@@ -51,7 +50,7 @@ CREATE TABLE RAP(
 CREATE TABLE GioChieu(
 	MaGioChieu varchar(10) not null,
 	MaRap varchar(10),
-	GioChieu time,
+	XuatChieu INT,
 	CONSTRAINT PK_GioChieu PRIMARY KEY(MaGioChieu),
 	CONSTRAINT FK_MaRap FOREIGN KEY(MaRap) references RAP(MaRap)	
 );
