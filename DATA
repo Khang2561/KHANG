@@ -1,4 +1,7 @@
-
+CREATE DATABASE CINEMA
+GO
+USE CINEMA 
+GO
 CREATE TABLE HangSX(
 	MaHangSX varchar(10) not null,
 	TenHangSX VARCHAR(20),
@@ -23,7 +26,7 @@ CREATE TABLE Phim(
 	MaNuocSX VARCHAR(10) NOT NULL,
 	MaHangSX VARCHAR(10) NOT NULL,
 	DaoDien VARCHAR(20),
-	MaTheLoai VARCHAR(20) NOT NULL,
+	MaTheLoai VARCHAR(10) NOT NULL,
 	NgayKhoiChieu DATE,
 	NgayKetThuc DATE,
 	NuDVChinh VARCHAR(50),
@@ -58,7 +61,7 @@ CREATE TABLE PhongChieu(
 	MaRap varchar(10) not null,
 	TenPhong varchar(50),
 	TongSoGhe int,
-	constraint FK_MARAP foreign key (MaRap) references RAP(MaRap)
+	constraint FK_MARAP1 foreign key (MaRap) references RAP(MaRap)
 );
 
 CREATE TABLE Ve(
@@ -71,10 +74,10 @@ CREATE TABLE PhongChieuGhe(
 	MaGhe varchar(10) not null primary key,
 	TrangThai varchar(10),
 	constraint fk_MaPhong foreign key(MaPhong) references PhongChieu(MaPhong),
-	constraint fk_MaRap foreign key (MaRap) references RAP(MaRap),
+	constraint fk_MaRap2 foreign key (MaRap) references RAP(MaRap),
 	constraint fk_MaGhe foreign key (MaGhe) references Ve(MaGhe)
 );
-alter table Ve add constraint fk_MaGhe foreign key (MaGhe) references PhongChieuGhe(MaGhe);
+alter table Ve add constraint fk_MaGhe1 foreign key (MaGhe) references PhongChieuGhe(MaGhe);
 
 CREATE TABLE LichChieu(
 	MaShow varchar(10) not null,
@@ -86,12 +89,12 @@ CREATE TABLE LichChieu(
 	GiaVe bigint,
 	SoVeDaBan int,
 	TongTien bigint,
-	CONSTRAINT PF_LichChieu primary key (MaShow),
-	CONSTRAINT FK_MaPhim foreign key (MaPhim) REFERENCES Phim(MaPhim),
-	CONSTRAINT FK_MaPhong foreign key (MaPhong) REFERENCES PhongChieu(MaPhong),
-	constraint fk_MaRap foreign key (MaRap) REFERENCES RAP(MaRap),
-	constraint fk_MaGioChieu foreign key (MaGioChieu) REFERENCES GioChieu(MaGioChieu)
+	CONSTRAINT PF_LichChieu3 primary key (MaShow),
+	CONSTRAINT FK_MaPhim3 foreign key (MaPhim) REFERENCES Phim(MaPhim),
+	CONSTRAINT FK_MaPhong3 foreign key (MaPhong) REFERENCES PhongChieu(MaPhong),
+	constraint fk_MaRap3 foreign key (MaRap) REFERENCES RAP(MaRap),
+	constraint fk_MaGioChieu3 foreign key (MaGioChieu) REFERENCES GioChieu(MaGioChieu)
 	
 	
 );
-alter table Ve add constraint fk_MaShow foreign key (MaShow) references LichChieu(MaShow);
+alter table Ve add constraint fk_MaShow3 foreign key (MaShow) references LichChieu(MaShow);
