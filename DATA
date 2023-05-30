@@ -73,8 +73,7 @@ CREATE TABLE PhongChieuGhe(
 	MaGhe varchar(10) not null primary key,
 	TrangThai varchar(10),
 	constraint fk_MaPhong foreign key(MaPhong) references PhongChieu(MaPhong),
-	constraint fk_MaRap2 foreign key (MaRap) references RAP(MaRap),
-	constraint fk_MaGhe foreign key (MaGhe) references Ve(MaGhe)
+	constraint fk_MaRap2 foreign key (MaRap) references RAP(MaRap)
 );
 alter table Ve add constraint fk_MaGhe1 foreign key (MaGhe) references PhongChieuGhe(MaGhe);
 
