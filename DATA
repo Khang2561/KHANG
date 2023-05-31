@@ -1,4 +1,9 @@
-CREATE DATABASE CINEMA
+-- Database: CINEMA
+
+-- DROP DATABASE IF EXISTS "CINEMA";
+
+CREATE DATABASE "CINEMA"
+    WITHCREATE DATABASE CINEMA
 GO
 USE CINEMA 
 GO
@@ -25,13 +30,11 @@ CREATE TABLE Phim(
 	TenPhim VARCHAR(50),
 	MaNuocSX VARCHAR(10) NOT NULL,
 	MaHangSX VARCHAR(10) NOT NULL,
-	DaoDien VARCHAR(20),
 	MaTheLoai VARCHAR(10) NOT NULL,
 	NgayKhoiChieu DATE,
 	NgayKetThuc DATE,
-	NoiDungChinh text,
-	TongChiPhi bigint,
-	TongThu bigint,
+	TongChiPhi money,
+	TongThu MONEY,
 	CONSTRAINT PK_Phim primary key (MaPhim),
 	CONSTRAINT FK_MaHangSX foreign key (MaHangSX) REFERENCES HangSX(MaHangSX),
 	CONSTRAINT FK_MaNuocSX foreign key (MaNuocSX) REFERENCES NuocSX(MaNuocSX),
@@ -84,15 +87,15 @@ CREATE TABLE LichChieu(
 	MaPhong varchar(10) not null,
 	NgayChieu date,
 	MaGioChieu varchar(10) not null,
-	GiaVe bigint,
+	GiaVe MONEY,
 	SoVeDaBan int,
-	TongTien bigint,
+	TongTien MONEY,
 	CONSTRAINT PF_LichChieu3 primary key (MaShow),
 	CONSTRAINT FK_MaPhim3 foreign key (MaPhim) REFERENCES Phim(MaPhim),
 	CONSTRAINT FK_MaPhong3 foreign key (MaPhong) REFERENCES PhongChieu(MaPhong),
 	constraint fk_MaRap3 foreign key (MaRap) REFERENCES RAP(MaRap),
 	constraint fk_MaGioChieu3 foreign key (MaGioChieu) REFERENCES GioChieu(MaGioChieu)
 	
-	
 );
 alter table Ve add constraint fk_MaShow3 foreign key (MaShow) references LichChieu(MaShow);
+
