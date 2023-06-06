@@ -1,97 +1,3 @@
-
-CREATE TABLE HangSX(
-	MaHangSX varchar(10) not null,
-	TenHangSX VARCHAR(20),
-	CONSTRAINT PF_HangSX PRIMARY KEY (MaHangSX)
-);
-
-CREATE TABLE NuocSX(
-	MaNuocSX varchar(10) not null,
-	TenNuocSX VARCHAR(20),
-	CONSTRAINT PF_NuocSX PRIMARY KEY (MaNuocSX)
-);
-
-CREATE TABLE TheLoai(
-	MaTheLoai varchar(10) not null,
-	TenTheLoai varchar(20),
-	CONSTRAINT PF_TheLoai PRIMARY KEY (MaTheLoai)
-);
-
-CREATE TABLE Phim(
-	MaPhim VARCHAR(10) NOT NULL,
-	TenPhim VARCHAR(50),
-	MaNuocSX VARCHAR(10) NOT NULL,
-	MaHangSX VARCHAR(10) NOT NULL,
-	DaoDien VARCHAR(20),
-	MaTheLoai VARCHAR(10) NOT NULL,
-	NgayKhoiChieu DATE,
-	NgayKetThuc DATE,
-	TongThu money  DEFAULT 0,
-	CONSTRAINT PK_Phim primary key (MaPhim),
-	CONSTRAINT FK_MaHangSX foreign key (MaHangSX) REFERENCES HangSX(MaHangSX),
-	CONSTRAINT FK_MaNuocSX foreign key (MaNuocSX) REFERENCES NuocSX(MaNuocSX),
-	CONSTRAINT FK_TheLoai foreign key (MaTheLoai) REFERENCES TheLoai(MaTheLoai)
-);
-
-CREATE TABLE RAP(
-	MaRap varchar(10) not null,
-	TenRap varchar(50),
-	DiaChi varchar(100),
-	DienThoai varchar(10),
-	SoPhong varchar(10)  DEFAULT 0,
-	TongSoGhe int  DEFAULT 0,
-	CONSTRAINT FK_RAP PRIMARY KEY (MaRap)
-);
-CREATE TABLE GioChieu(
-	MaGioChieu varchar(10) not null,
-	MaRap varchar(10),
-	XuatChieu text,
-	CONSTRAINT PK_GioChieu PRIMARY KEY(MaGioChieu),
-	CONSTRAINT FK_MaRap FOREIGN KEY(MaRap) references RAP(MaRap)	
-);
-
-CREATE TABLE PhongChieu(
-	MaPhong varchar(10) not null primary key,
-	MaRap varchar(10) not null,
-	TenPhong varchar(50),
-	TongSoGhe int  DEFAULT 0,
-	constraint FK_MARAP1 foreign key (MaRap) references RAP(MaRap)
-);
-
-
-CREATE TABLE Ve(
-	MaVe varchar(10) not null primary key,
-	MaRap varchar(10) not null,
-	MaPhong varchar(10) not null,
-	MaShow varchar(10) not null,
-	MaGhe varchar(10) not null ,
-	TrangThai varchar(10),
-	constraint fk_MaPhong foreign key(MaPhong) references PhongChieu(MaPhong),
-	constraint fk_MaRap2 foreign key (MaRap) references RAP(MaRap)
-);
-
-
-CREATE TABLE LichChieu(
-	MaShow varchar(10) not null,
-	MaPhim varchar(10) not null,
-	MaRap varchar(10) not null,
-	MaPhong varchar(10) not null,
-	NgayChieu datE,
-	MaGioChieu varchar(10) not null,
-	GiaVe money  DEFAULT 0,
-	SoVeDaBan int  DEFAULT 0,
-	TongTien money  DEFAULT 0,
-	CONSTRAINT PF_LichChieu3 primary key (MaShow),
-	CONSTRAINT FK_MaPhim3 foreign key (MaPhim) REFERENCES Phim(MaPhim),
-	CONSTRAINT FK_MaPhong3 foreign key (MaPhong) REFERENCES PhongChieu(MaPhong),
-	constraint fk_MaRap3 foreign key (MaRap) REFERENCES RAP(MaRap),
-	constraint fk_MaGioChieu3 foreign key (MaGioChieu) REFERENCES GioChieu(MaGioChieu)
-	
-	
-);
-alter table Ve add constraint fk_MaShow3 foreign key (MaShow) references LichChieu(MaShow);
-
-
 INSERT INTO HangSX (MaHangSX, TenHangSX) VALUES (N'OF11', N'Original Film');
 INSERT INTO HangSX (MaHangSX, TenHangSX) VALUES (N'WD12', N'Walt Disney Pictures');
 INSERT INTO HangSX (MaHangSX, TenHangSX) VALUES (N'AP13', N'Arunuchai Panupan');
@@ -214,13 +120,151 @@ VALUES
 ('V024', 'CGV04', 'PC01', 'LS09', 'G04', 'Chưa bán'),
 ('V025', 'CGV04', 'PC01', 'LS09', 'G05', 'Chưa bán'),
 ('V026', 'CGV04', 'PC01', 'LS09', 'G07', 'Đã bán')
-DELETE FROM Ve WHERE MaVe = N'V021'
-SELECT * FROM Ve
-SELECT * FROM LichChieu
-delete PhongChieu
-delete LichChieu
-select * from RAP
-DELETE GioChieu
-DELETE RAP
-select * from PhongChieu 
------
+--1/ cập nhập số vé đã bán và tổng doanh thu mà lịch chiếu đó đã bán 
+CREATE OR REPLACE FUNCTION SoVeDaBan() 
+RETURNS TRIGGER AS
+$$
+BEGIN
+	UPDATE LichChieu 
+	SET SoVeDaBan = (SELECT COUNT(*) FROM Ve WHERE Ve.MaShow = NEW.MaShow AND TrangThai ='Đã bán');
+	UPDATE LichChieu
+	SET TongTien = (GiaVe * SoVeDaBan);
+	RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER SoVeDaBan_trigger
+AFTER INSERT OR UPDATE OR DELETE ON Ve
+FOR EACH ROW 
+EXECUTE FUNCTION SoVeDaBan();
+--2/ Cập nhập tổng doanh thu và số vé đã bán 
+CREATE OR REPLACE FUNCTION SoPhongRap() 
+RETURNS TRIGGER AS
+$$
+BEGIN
+	UPDATE RAP
+	SET TongSoGhe = RAP.TongSoGhe + (SELECT TongSoGhe FROM NEW JOIN PhongChieu ON NEW.MaPhong=PhongChieu.MaPhong WHERE PhongChieu.MaRap = RAP.MaRap);
+	UPDATE RAP 
+	SET SoPhong = ( SELECT COUNT(MaPhong) FROM PhongChieu WHERE MaRap = NEW.MaRap) 
+	WHERE RAP.MaRap = NEW.MaRap;
+	RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER SoPhongRap_trigger
+AFTER INSERT OR UPDATE OR DELETE ON PhongChieu
+FOR EACH ROW 
+EXECUTE FUNCTION SoPhongRap();
+--3 Ngày chiếu của phim đó phải sau ngày phát hành và trước ngày kết thúc của phim 
+CREATE OR REPLACE FUNCTION UTG_INSERT_CheckDateLichChieu() 
+RETURNS TRIGGER AS
+$$
+DECLARE 
+	idDinhDang VARCHAR(50);
+	ThoiGianChieu DATE;
+	NgayKhoiChieu DATE;
+	NgayKetThuc DATE;
+BEGIN
+	SELECT MaPhim INTO idDinhDang FROM NEW;
+	SELECT NgayChieu INTO ThoiGianChieu FROM NEW;
+
+	SELECT P.NgayKhoiChieu, P.NgayKetThuc
+	INTO NgayKhoiChieu, NgayKetThuc
+	FROM Phim P JOIN LichChieu LC ON P.MaPhim = LC.MaPhim
+	WHERE LC.MaPhim = idDinhDang;
+
+	IF ( ThoiGianChieu > NgayKetThuc or ThoiGianChieu < NgayKhoiChieu) THEN
+		RAISE EXCEPTION 'Lịch Chiếu lớn hơn hoặc bằng Ngày Khởi Chiếu và nhỏ hơn hoặc bằng Ngày Kết Thúc';
+	END IF;
+	
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER UTG_INSERT_CheckDateLichChieu_trigger 
+AFTER INSERT OR UPDATE ON LichChieu
+FOR EACH ROW 
+EXECUTE FUNCTION UTG_INSERT_CheckDateLichChieu();
+
+-- store procedure 
+--1/ thêm tên phim vào danh sách 
+CREATE OR REPLACE PROCEDURE AddPhim
+(
+    _MaPhim VARCHAR(10),
+    _TenPhim VARCHAR(50),
+    _MaHangSX VARCHAR(10),
+    _DaoDien VARCHAR(20),
+    _MaTheLoai VARCHAR(10),
+	_MaNuocSX VARCHAR(10),
+    _NgayKhoiChieu TIMESTAMP,
+    _NgayKetThuc TIMESTAMP,
+    _TongThu MONEY
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Kiểm tra xem Mã hãng sản xuất có tồn tại trong bảng HangSX chưa
+    -- Kiểm tra tính hợp lệ của các tham số đầu vào
+    IF NOT EXISTS (SELECT * FROM NuocSX WHERE MaNuocSX = _MaNuocSX)
+    THEN
+        RAISE EXCEPTION 'Mã nước sản xuất không tồn tại';
+    END IF;
+    
+    IF NOT EXISTS (SELECT * FROM HangSX WHERE MaHangSX = _MaHangSX)
+    THEN
+        RAISE EXCEPTION 'Mã hãng sản xuất không tồn tại';
+    END IF;
+    
+    IF NOT EXISTS (SELECT * FROM TheLoai WHERE MaTheLoai = _MaTheLoai)
+    THEN
+        RAISE EXCEPTION 'Mã thể loại không tồn tại';
+    END IF;
+
+    IF EXISTS (SELECT * FROM Phim WHERE MaPhim = _MaPhim)
+    THEN
+        RAISE EXCEPTION 'Phim đã tồn tại';
+    END IF;
+
+    INSERT INTO Phim (MaPhim, TenPhim, MaHangSX, DaoDien, MaTheLoai, MaNuocSX, NgayKhoiChieu, NgayKetThuc, TongThu)
+    VALUES (_MaPhim, _TenPhim, _MaHangSX, _DaoDien, _MaTheLoai, _MaNuocSX, _NgayKhoiChieu, _NgayKetThuc, _TongThu);
+    RAISE NOTICE 'Dữ liệu đã được thêm vào thành công';
+END;
+$$;
+-- 2/Nhập vào tên phim xuất ra các rạp có chiếu phim, xuất phim, ngày khởi chiếu 
+CREATE OR REPLACE FUNCTION TimVe(_TenPhim VARCHAR(50))
+RETURNS TABLE(TenPhim VARCHAR(50), TenRap VARCHAR(50), DiaChi VARCHAR(100), NgayChieu TIMESTAMP, GiaVe MONEY, SoVeConTrong INTEGER)
+AS $$
+BEGIN
+    IF NOT EXISTS (SELECT * FROM Phim WHERE TenPhim = _TenPhim)
+    THEN
+        RAISE EXCEPTION 'Tên phim không có xuất chiếu trong các hệ thống rạp';
+    END IF;
+    
+    RETURN QUERY 
+    SELECT Phim.TenPhim, RAP.TenRap, RAP.DiaChi, LichChieu.NgayChieu, LichChieu.GiaVe, COUNT(Ve.MaVe) AS SoVeConTrong
+    FROM Ve
+    LEFT JOIN LichChieu ON Ve.MaShow = LichChieu.MaShow
+    LEFT JOIN Phim ON Phim.MaPhim = LichChieu.MaPhim
+    LEFT JOIN RAP ON LichChieu.MaRap = RAP.MaRap
+    WHERE Phim.TenPhim = _TenPhim AND Ve.TrangThai = 'Trong'
+    GROUP BY Phim.TenPhim, RAP.TenRap, RAP.DiaChi, LichChieu.NgayChieu, LichChieu.GiaVe;
+END;
+$$ LANGUAGE plpgsql;
+--3/Nhập vào mã phim vè xuất ra các thông tin chi tiết của vé để in ra vé 
+CREATE OR REPLACE FUNCTION VE_THONGTIN_pro(_MaVe VARCHAR(10))
+RETURNS TABLE(MaVe VARCHAR(10), MaPhong VARCHAR(10), NgayChieu TIMESTAMP, MaGhe VARCHAR(10), GiaVe MONEY, XuatChieu TIME, TenRap VARCHAR(50), MaRap VARCHAR(10), DiaChi VARCHAR(100), TenPhim VARCHAR(50))
+AS $$
+BEGIN
+    RETURN QUERY SELECT VE.MaVe, LC.MaPhong, LC.NgayChieu, MaGhe, LC.GiaVe, GC.XuatChieu, RAP.TenRap, RAP.MaRap, RAP.DiaChi, P.TenPhim
+    FROM Ve
+    LEFT JOIN LichChieu LC ON LC.MaShow = Ve.MaShow
+    LEFT JOIN GioChieu GC ON GC.MaGioChieu = LC.MaGioChieu
+    LEFT JOIN RAP ON LC.MaRap = RAP.MaRap
+    LEFT JOIN Phim P ON P.MaPhim = LC.MaPhim
+    WHERE Ve.TrangThai = 'Đã bán' AND Ve.MaVe = _MaVe;
+END;
+$$ LANGUAGE plpgsql;
+
+
