@@ -425,3 +425,46 @@ CREATE user nv1 WITH PASSWORD  '123' login;
 CREATE user nv2 WITH PASSWORD  '123' login;
 CREATE user ql1 WITH PASSWORD '123' login;
 CREATE user gd WITH PASSWORD '123' login;
+
+--role
+create role khachhang
+create role nhanvien;
+create role quanli;
+create role giamdoc;
+--phan quyen
+GRANT select on Ve to khachhang ;
+GRANT select   on LichChieu to khachhang;
+GRANT select   on GioChieu to khachhang ;
+GRANT select    on PhongChieu to khachhang ;
+
+GRANT select ,insert  , update,  delete  on Ve to nhanvien ;
+GRANT select   on LichChieu to nhanvien;
+GRANT select   on GioChieu to nhanvien ;
+GRANT select    on PhongChieu to nhanvien ;
+
+GRANT select ,insert  , update,  delete  on LichChieu to quanli;
+GRANT select ,insert  , update,  delete  on Ve to quanli ;
+GRANT select ,insert  , update,  delete  on GioChieu to quanli ;
+GRANT select ,insert  , update,  delete  on PhongChieu to quanli ;
+
+GRANT ALL PRIVILEGES ON GioChieu to giamdoc with grant option;
+GRANT ALL PRIVILEGES ON LichChieu to giamdoc with grant option;
+GRANT ALL PRIVILEGES ON PhongChieu to giamdoc with grant option;
+GRANT ALL PRIVILEGES ON Ve to giamdoc with grant option;
+GRANT ALL PRIVILEGES ON HangSX to giamdoc;
+GRANT ALL PRIVILEGES ON NuocSX to giamdoc;
+GRANT ALL PRIVILEGES ON Phim to giamdoc;
+GRANT ALL PRIVILEGES ON RAP to giamdoc;
+GRANT ALL PRIVILEGES ON TheLoai to giamdoc;
+
+DENY   select ,insert  , update,  delete  On LichChieu to nhanvien;
+
+REVOKE   select ,insert  , update  On LichChieu to nhanvien;
+----add user vao role
+GRANT khachhang TO KH1;
+GRANT  khachhang to KH2;
+GRANT khachhang to KH3;
+GRANT  nhanvien to nv1;
+GRANT  nhanvien to nv2;
+GRANT quanli to ql1;
+GRANT giamdoc to gd;
