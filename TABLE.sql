@@ -416,6 +416,23 @@ $$ LANGUAGE plpgsql;
 drop function TimVe
 
 SELECT * FROM TimVe('Fast and Furious 10');
+--------------------------------------------
+--VIEW
+CREATE MATERIALIZED VIEW DOANH_THU_2022 AS
+SELECT RAP.MARAP,RAP.TENRAP,EXTRACT (MONTH FROM LC.NGAYCHIEU) AS "Tháng", SUM(LC.TONGTIEN) AS "Doanh Thu"
+FROM LichChieu as LC
+LEFT JOIN RAP ON RAP.MARAP = LC.MARAP
+WHERE EXTRACT (YEAR FROM LC.NGAYCHIEU) = 2022
+GROUP BY RAP.MARAP, RAP.TENRAP,EXTRACT(MONTH FROM LC.NGAYCHIEU);
+SELECT * FROM DOANH_THU_2022
+
+REFRESH MATERIALIZED VIEW DOANH_THU_2022;
+
+set datestyle = DMY;
+INSERT INTO LichChieu (MaShow, MaPhim, MaRap, MaPhong, NgayChieu, MaGioChieu, GiaVe, SoVeDaBan, TongTien) VALUES
+('LS98','FF01', 'CGV01', 'PC01', '19/05/2022 ','GC01', 100000, 100,10000000);
+
+SELECT * FROM LICHCHIEU
 ---------------------------------------------
 -- cap quyen va phan quyen
 CREATE user KH1 WITH PASSWORD  '123' login;
